@@ -17,23 +17,33 @@ public class MeltingRecipeAdder {
     private final int renderBlockMeta;
     private final int meltingTemperature;
     private final String fluidName;
+    private String groupName = null;
 
     MeltingRecipeAdder(Block renderBlock, int renderBlockMeta, int meltingTemperature, String fluidName, int amount) {
         this.renderBlock = renderBlock;
         this.renderBlockMeta = renderBlockMeta;
         this.meltingTemperature = meltingTemperature;
         this.fluidName = fluidName;
-        addMelting = itemStack -> Smeltery.addMelting(
-                itemStack,
-                renderBlock,
-                renderBlockMeta,
-                meltingTemperature,
-                FluidRegistry.getFluidStack(fluidName, amount));
-
+        addMelting = itemStack -> {
+            Smeltery.addMelting(
+                    itemStack,
+                    renderBlock,
+                    renderBlockMeta,
+                    meltingTemperature,
+                    FluidRegistry.getFluidStack(fluidName, amount));
+            if (groupName != null) {
+                Smeltery.addToSmeltingGroup(itemStack, groupName);
+            }
+        };
     }
 
     public MeltingRecipeAdder withAmount(int newAmount) {
         return new MeltingRecipeAdder(renderBlock, renderBlockMeta, meltingTemperature, fluidName, newAmount);
+    }
+
+    public MeltingRecipeAdder withGroup(String groupName) {
+        this.groupName = groupName;
+        return this;
     }
 
     public MeltingRecipeAdder add(ItemStack itemStack) {
@@ -41,13 +51,13 @@ public class MeltingRecipeAdder {
         return this;
     }
 
-    public MeltingRecipeAdder add(Stream<ItemStack> itemStackStream) {
-        itemStackStream.forEach(addMelting);
+    public MeltingRecipeAdder addIfNotNull(ItemStack itemStack) {
+        if (itemStack != null) add(itemStack);
         return this;
     }
 
-    public MeltingRecipeAdder add(Iterable<ItemStack> itemStackIterable) {
-        itemStackIterable.forEach(addMelting);
+    public MeltingRecipeAdder add(Stream<ItemStack> itemStackStream) {
+        itemStackStream.forEach(addMelting);
         return this;
     }
 
